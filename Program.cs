@@ -8,7 +8,7 @@ game.Run();
 //===========================================================//
 
 public record Settings(
-    int TickRate = 500,
+    int TickRate = 100,
     int Width = 48,
     int Height = 16,
     int XStep = 2,
