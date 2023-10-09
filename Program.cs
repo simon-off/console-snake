@@ -8,7 +8,7 @@ game.Run();
 //===========================================================//
 
 public record Settings(
-    int TickRate = 100,
+    int TickRate = 500,
     int Width = 48,
     int Height = 16,
     int XStep = 2,
@@ -104,7 +104,10 @@ class Game
             Thread.Sleep(_settings.TickRate);
         }
         Helper.PrintAt(
-            new Pos(_settings.Width / 2, _settings.Height / 2),
+            new Pos(
+                (_settings.Width + _settings.XStep) / 2,
+                (_settings.Height + _settings.YStep) / 2
+            ),
             "YOU DEAD",
             centered: true
         );
@@ -135,7 +138,8 @@ class Snake
         {
             Body.RemoveAt(Body.Count() - 1);
         }
-        Head = direction switch
+
+        var newHead = direction switch
         {
             Direction.Left => Head.Move(-_settings.XStep, 0),
             Direction.Right => Head.Move(_settings.XStep, 0),
@@ -144,11 +148,23 @@ class Snake
             _ => Head.Move(0, 0),
         };
 
+        Head = new Pos(
+            WrapIfOutOfMap(newHead.X, _settings.XStep, _settings.Width),
+            WrapIfOutOfMap(newHead.Y, _settings.YStep, _settings.Height)
+        );
+
         if (Body.Contains(Head))
         {
             IsDead = true;
         }
     }
+
+    private int WrapIfOutOfMap(int input, int stepSize, int max) =>
+        input < stepSize
+            ? max
+            : input > max
+                ? stepSize
+                : input;
 
     public void Render()
     {
