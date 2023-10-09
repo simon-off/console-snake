@@ -9,8 +9,8 @@ game.Run();
 
 public record Settings(
     int TickRate = 100,
-    int Width = 48,
-    int Height = 16,
+    int Width = 32,
+    int Height = 12,
     int XStep = 2,
     int YStep = 1
 );
@@ -124,7 +124,7 @@ class Snake
     public Snake(Settings settings)
     {
         _settings = settings;
-        Head = new Pos(settings.Width / 2, settings.Height / 2);
+        Head = new Pos(settings.Width / 2 + settings.XStep, settings.Height / 2 + settings.YStep);
     }
 
     public bool IsDead { get; private set; } = false;
