@@ -7,31 +7,6 @@ game.Run();
 //+++ GAME OBJECTS +++||-------------------------------------//
 //===========================================================//
 
-public record Settings(
-    int TickRate = 100,
-    int Width = 32,
-    int Height = 12,
-    int XStep = 2,
-    int YStep = 1
-);
-
-public enum Direction
-{
-    Left,
-    Right,
-    Up,
-    Down,
-}
-
-public record struct Pos(int X, int Y)
-{
-    public Pos Move(int x, int y) => new Pos(X + x, Y + y);
-}
-
-//===========================================================//
-//+++ GAME CLASS +++||---------------------------------------//
-//===========================================================//
-
 class Game
 {
     private readonly Settings _settings;
@@ -73,7 +48,7 @@ class Game
             }
 
             Console.Clear();
-            Helper.PrintAt(new Pos(0, _settings.Height + _settings.YStep + 2), $"SCORE: {_score}");
+            Helper.PrintAt(new Pos(0, _settings.Height + 3), $"SCORE: {_score}");
 
             var newDirection = GetDirection(GetKey()) ?? _direction;
             _direction = newDirection.IsOppositeDirection(_direction) ? _direction : newDirection;
@@ -104,10 +79,7 @@ class Game
             Thread.Sleep(_settings.TickRate);
         }
         Helper.PrintAt(
-            new Pos(
-                (_settings.Width + _settings.XStep) / 2,
-                (_settings.Height + _settings.YStep) / 2
-            ),
+            new Pos((_settings.Width + 2) / 2, (_settings.Height + 1) / 2),
             "YOU DEAD",
             centered: true
         );
@@ -124,7 +96,7 @@ class Snake
     public Snake(Settings settings)
     {
         _settings = settings;
-        Head = new Pos(settings.Width / 2 + settings.XStep, settings.Height / 2 + settings.YStep);
+        Head = new Pos(settings.Width / 2 + 2, settings.Height / 2 + 1);
     }
 
     public bool IsDead { get; private set; } = false;
@@ -141,16 +113,16 @@ class Snake
 
         var newHead = direction switch
         {
-            Direction.Left => Head.Move(-_settings.XStep, 0),
-            Direction.Right => Head.Move(_settings.XStep, 0),
-            Direction.Up => Head.Move(0, -_settings.YStep),
-            Direction.Down => Head.Move(0, _settings.YStep),
-            _ => Head.Move(0, 0),
+            Direction.Left => Head.MoveRelative(-2, 0),
+            Direction.Right => Head.MoveRelative(2, 0),
+            Direction.Up => Head.MoveRelative(0, -1),
+            Direction.Down => Head.MoveRelative(0, 1),
+            _ => Head.MoveRelative(0, 0),
         };
 
         Head = new Pos(
-            WrapIfOutOfMap(newHead.X, _settings.XStep, _settings.Width),
-            WrapIfOutOfMap(newHead.Y, _settings.YStep, _settings.Height)
+            WrapIfOutOfMap(newHead.X, 2, _settings.Width),
+            WrapIfOutOfMap(newHead.Y, 1, _settings.Height)
         );
 
         if (Body.Contains(Head))
@@ -196,8 +168,8 @@ class Apple
     public void Spawn()
     {
         Position = new Pos(
-            Random.Shared.Next(_settings.XStep, (_settings.Width + _settings.XStep) / 2) * 2,
-            Random.Shared.Next(_settings.YStep, (_settings.Height + _settings.YStep) / 2) * 2
+            Random.Shared.Next(2, (_settings.Width + 2) / 2) * 2,
+            Random.Shared.Next(1, (_settings.Height + 1) / 2) * 2
         );
     }
 
@@ -219,23 +191,39 @@ class Map
     public void Render()
     {
         // Top & bottom walls
-        Helper.PrintAt(new Pos(0, 0), "█".Repeat(_settings.Width + _settings.XStep));
-        Helper.PrintAt(
-            new Pos(0, _settings.Height + _settings.YStep),
-            "█".Repeat(_settings.Width + _settings.XStep)
-        );
+        Helper.PrintAt(new Pos(0, 0), "█".Repeat(_settings.Width + 2));
+        Helper.PrintAt(new Pos(0, _settings.Height + 1), "█".Repeat(_settings.Width + 2));
 
         // Left & right walls
-        Helper.PrintAt(new Pos(0, 0), "██\n".Repeat(_settings.Height + _settings.YStep));
-        for (var i = 0; i <= _settings.Height + _settings.YStep; i++)
+        Helper.PrintAt(new Pos(0, 0), "██\n".Repeat(_settings.Height + 1));
+        for (var i = 0; i <= _settings.Height + 1; i++)
         {
-            Helper.PrintAt(new Pos(_settings.Width + _settings.XStep, i), "██");
+            Helper.PrintAt(new Pos(_settings.Width + 2, i), "██");
         }
     }
 }
 
 //===========================================================//
-//+++ EXTENSION METHODS +++||--------------------------------//
+//+++ GAME DATA +++||----------------------------------------//
+//===========================================================//
+
+public record Settings(int TickRate = 100, int Width = 32, int Height = 12);
+
+public enum Direction
+{
+    Left,
+    Right,
+    Up,
+    Down,
+}
+
+public record struct Pos(int X, int Y)
+{
+    public Pos MoveRelative(int x, int y) => new Pos(X + x, Y + y);
+}
+
+//===========================================================//
+//+++ HELPERS AND EXTENSIONS +++||---------------------------//
 //===========================================================//
 
 public static class Extensions
@@ -264,10 +252,6 @@ public static class Extensions
         return span.ToString();
     }
 }
-
-//===========================================================//
-//+++ HELPER +++||-------------------------------------------//
-//===========================================================//
 
 public static class Helper
 {
