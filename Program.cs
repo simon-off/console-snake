@@ -1,7 +1,13 @@
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 Console.CursorVisible = false;
-Game game = new(new Settings());
-game.Run();
+
+while (true)
+{
+    Game game = new(new Settings());
+    if (!game.Run()) break;
+}
+
+Console.Clear();
 
 //===========================================================//
 //+++ GAME OBJECTS +++||-------------------------------------//
@@ -38,7 +44,7 @@ class Game
             _ => null,
         };
 
-    public void Run()
+    public bool Run()
     {
         while (!_gameOver)
         {
@@ -78,14 +84,29 @@ class Game
 
             Thread.Sleep(_settings.TickRate);
         }
+
         Helper.PrintAt(
-            new Pos((_settings.Width + 2) / 2, (_settings.Height + 1) / 2),
-            "YOU DEAD",
-            centered: true
+            pos: new Pos((_settings.Width + 2) / 2, (_settings.Height - 1) / 2),
+            symbol: "YOU DIED",
+            textCentered: true
         );
-        Console.ReadLine();
-        Console.SetCursorPosition(0, 0);
-        Console.Clear();
+        Helper.PrintAt(
+            pos: new Pos((_settings.Width + 2) / 2, (_settings.Height + 2) / 2),
+            symbol: "press ANY KEY to play again",
+            textCentered: true
+        );
+        Helper.PrintAt(
+            pos: new Pos((_settings.Width + 2) / 2, (_settings.Height + 4) / 2),
+            symbol: "press ESC to exit",
+            textCentered: true
+        );
+
+        while (true)
+        {
+            var key = Console.ReadKey().Key;
+            if (key == ConsoleKey.Escape) return false;
+            if (key == ConsoleKey.Enter) return true;
+        }
     }
 }
 
@@ -255,16 +276,9 @@ public static class Extensions
 
 public static class Helper
 {
-    public static void PrintAt(Pos pos, string symbol, bool centered = false)
+    public static void PrintAt(Pos pos, string symbol, bool textCentered = false)
     {
-        if (centered)
-        {
-            Console.SetCursorPosition(pos.X - (symbol.Length / 2), pos.Y);
-        }
-        else
-        {
-            Console.SetCursorPosition(pos.X, pos.Y);
-        }
+        Console.SetCursorPosition(textCentered ? pos.X - (symbol.Length / 2) : pos.X, pos.Y);
         Console.Write(symbol);
     }
 }
